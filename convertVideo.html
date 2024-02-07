@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Convert Video to HLS Format</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/6698d507cc.js" crossorigin="anonymous"></script>
+    <style>
+      .inputDiv{
+        width: 50%;
+        /* border: 1px solid tomato; */
+        margin-top: 10px;
+      }
+      .allInput{
+        width: 100%;
+        border: none;
+        border: 1px solid gray;
+      }
+    </style>
+    <!-- modal css  -->
+    <style>
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 60%;
+}
+
+.close {
+  color: #aaa;
+  /* float: right; */
+  font-size: 28px;
+  font-weight: bold;
+  display: flex;
+  justify-content: end;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+    </style>
+</head>
+<body>
+<section class="container mt-5" style="max-width: 900px">
+    <h1>Convert Video to HLS format</h1>
+    <div class="alert alert-warning">
+        <strong class="fs-3">! Important !</strong><br>
+        Keep the video file in the video folder and then change the video file name in the hls-create.php page
+        according to your file name. Current file name is video.mp4
+        <br>
+        Check the file hls-create.php, you will see instructions as comments.
+    </div>
+    <div class="m-5">
+        <h5>Select your video.</h5>
+        <video id="video" loop="true" width="350px" controls></video> <br><br>
+         <!-- action="http://localhost:3000/upload"  action="hls-create.php"-->
+        <form action="hls-create.php" method="post" enctype="multipart/form-data" id="">
+          <div class="inputDiv">
+            <label for="title">Video Title:</label> <br>
+            <input class="allInput" type="text" name="title" id="title">
+          </div>
+          <div class="inputDiv">
+            <label for="description">Video description:</label> <br>
+            <textarea class="allInput" name="description" id="description" cols="10" rows="3"></textarea>
+            <!-- <input type="text" name="title" id="title"> -->
+          </div>
+          <div class="inputDiv">
+            <label for="videoFile">Choose a video:</label><br>
+            <input class="allInput" type="file" name="videoFile" id="videoFile" accept="video/*">
+          </div>
+          <div class="inputDiv">
+            <label for="thumbnail">Thumbnail:</label><br>
+            <input class="allInput" type="file" name="thumbnail" id="thumbnail">
+          </div>
+          <div class="inputDiv">
+            <style>
+              
+              .tags-input-wrapper{
+                  background: transparent;
+                  padding: 10px;
+                  border-radius: 4px;
+                  max-width: 400px;
+                  border: 1px solid #ccc
+              }
+              .tags-input-wrapper input{
+                  border: none;
+                  background: transparent;
+                  outline: none;
+                  width: 140px;
+                  margin-left: 8px;
+              }
+              .tags-input-wrapper .tag{
+                  display: inline-block;
+                  background-color: #fa0e7e;
+                  color: white;
+                  border-radius: 40px;
+                  padding: 0px 3px 0px 7px;
+                  margin-right: 5px;
+                  margin-bottom:5px;
+                  box-shadow: 0 5px 15px -2px rgba(250 , 14 , 126 , .7)
+              }
+              .tags-input-wrapper .tag a {
+                  margin: 0 7px 3px;
+                  display: inline-block;
+                  cursor: pointer;
+              }
+            </style>
+            <input type="text" name="allTags" id="getValue" style="display: none;">
+            <label for="Tags">Tags:</label><br>
+            <input class="allInput" type="text" name="Tags" id="tag-input1">
+          </div>
+          <br>
+          <input class="mt-4" onclick="showLoad()" type="submit" value="Upload and Process" id="ProcessBtn">
+      </form>
+    </div>
+    </section>
+
+
+    <!-- free loader -->
+    <style>
+      .se-pre-con {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: 9999;
+	background-color:#0303038f;
+}
+.data-loader {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 200px;
+	margin-left: -100px;
+	margin-top: -26px;
+	text-align: center;
+	padding: 2px;
+}
+
+.data-loader > div:last-child {
+	position: relative;
+	width: 80px;
+	height: 15px;
+	margin: 1em auto;
+}
+
+.data-loader > div:last-child > div {
+	position: absolute;
+	top: 0;
+	width: 13px;
+	height: 13px;
+	border-radius: 50%;
+	background: #05d9ff;
+	animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+
+.data-loader > div:last-child > div:nth-child(1) {
+	left: 8px;
+	animation: data-loader-1 0.6s infinite;
+}
+
+.data-loader > div:last-child > div:nth-child(2) {
+	left: 8px;
+	animation: data-loader-2 0.6s infinite;
+}
+
+.data-loader > div:last-child > div:nth-child(3) {
+	left: 32px;
+	animation: data-loader-2 0.6s infinite;
+}
+
+.data-loader > div:last-child > div:nth-child(4) {
+	left: 56px;
+	animation: data-loader-3 0.6s infinite;
+}
+
+@keyframes data-loader-1 {
+	0% {
+		transform: scale(0);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+@keyframes data-loader-2 {
+	0% {
+		transform: translate(0, 0);
+	}
+	100% {
+		transform: translate(24px, 0);
+	}
+}
+
+@keyframes data-loader-3 {
+	0% {
+		transform: scale(1);
+	}
+	100% {
+		transform: scale(0);
+	}
+}
+
+    </style>
+    <div class="se-pre-con" style="display: none;" id="dataLoder">
+      <div class="data-loader">
+        <div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+    </div>
+    
+    
+    <!-- Success message  -->
+    <div id="myModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times; <i class="fa-solid fa-xmark"></i></span>
+        <p>Your video successful convarted.</p>
+      </div>
+    </div>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- create tag sctipt -->
+    <script>
+
+    let getValue = document.getElementById('getValue')
+    
+    // Plugin Constructor 
+    var TagsInput = function(opts){
+        this.options = Object.assign(TagsInput.defaults , opts);
+        this.init();
+    }
+
+    // Initialize the plugin
+    TagsInput.prototype.init = function(opts){
+        this.options = opts ? Object.assign(this.options, opts) : this.options;
+
+        if(this.initialized)
+            this.destroy();
+            
+        if(!(this.orignal_input = document.getElementById(this.options.selector)) ){
+            console.error("tags-input couldn't find an element with the specified ID");
+            return this;
+        }
+
+        this.arr = [];
+        this.wrapper = document.createElement('div');
+        this.input = document.createElement('input');
+        init(this);
+        initEvents(this);
+
+        this.initialized =  true;
+        return this;
+    }
+
+    // Add Tags
+    TagsInput.prototype.addTag = function(string){
+
+        if(this.anyErrors(string))
+            return ;
+
+        this.arr.push(string);
+        var tagInput = this;
+            let jsonValue = JSON.stringify(this.arr);
+            getValue.value = jsonValue;
+      console.log("add tag =", this.arr)
+
+        var tag = document.createElement('span');
+        tag.className = this.options.tagClass;
+        tag.innerText = string;
+
+        var closeIcon = document.createElement('a');
+        closeIcon.innerHTML = '&times;';
+        
+        // delete the tag when icon is clicked
+        closeIcon.addEventListener('click' , function(e){
+            e.preventDefault();
+            var tag = this.parentNode;
+
+            for(var i =0 ;i < tagInput.wrapper.childNodes.length ; i++){
+                if(tagInput.wrapper.childNodes[i] == tag)
+                    tagInput.deleteTag(tag , i);
+            }
+        })
+
+
+        tag.appendChild(closeIcon);
+        this.wrapper.insertBefore(tag , this.input);
+        this.orignal_input.value = this.arr.join(',');
+
+        return this;
+    }
+
+    // Delete Tags
+    TagsInput.prototype.deleteTag = function(tag , i){
+        tag.remove();
+        this.arr.splice( i , 1);
+        this.orignal_input.value =  this.arr.join(',');
+      let jsonValue = JSON.stringify(this.arr);
+      getValue.value = jsonValue;
+      console.log(this.arr,getValue)
+        return this;
+    }
+
+    // Make sure input string have no error with the plugin
+    TagsInput.prototype.anyErrors = function(string){
+        if( this.options.max != null && this.arr.length >= this.options.max ){
+            console.log('max tags limit reached');
+            return true;
+        }
+        
+        if(!this.options.duplicate && this.arr.indexOf(string) != -1 ){
+            console.log('duplicate found " '+string+' " ')
+            return true;
+        }
+
+        return false;
+    }
+
+    // Add tags programmatically 
+    TagsInput.prototype.addData = function(array){
+        var plugin = this;
+        
+        array.forEach(function(string){
+            plugin.addTag(string);
+        })
+        return this;
+    }
+
+    // Get the Input String
+    TagsInput.prototype.getInputString = function(){
+        return this.arr.join(',');
+    }
+
+
+    // destroy the plugin
+    TagsInput.prototype.destroy = function(){
+        this.orignal_input.removeAttribute('hidden');
+
+        delete this.orignal_input;
+        var self = this;
+        
+        Object.keys(this).forEach(function(key){
+            if(self[key] instanceof HTMLElement)
+                self[key].remove();
+            
+            if(key != 'options')
+                delete self[key];
+        });
+
+        this.initialized = false;
+    }
+
+    // Private function to initialize the tag input plugin
+    function init(tags){
+        tags.wrapper.append(tags.input);
+        tags.wrapper.classList.add(tags.options.wrapperClass);
+        tags.orignal_input.setAttribute('hidden' , 'true');
+        tags.orignal_input.parentNode.insertBefore(tags.wrapper , tags.orignal_input);
+    }
+
+    // initialize the Events
+    function initEvents(tags){
+        tags.wrapper.addEventListener('click' ,function(){
+            tags.input.focus();           
+        });
+        
+
+        tags.input.addEventListener('keydown' , function(e){
+            var str = tags.input.value.trim(); 
+
+            if( !!(~[9 , 13 , 188].indexOf( e.keyCode ))  )
+            {
+                e.preventDefault();
+                tags.input.value = "";
+                if(str != "")
+                    tags.addTag(str);
+            }
+
+        });
+    }
+
+
+    // Set All the Default Values
+    TagsInput.defaults = {
+        selector : '',
+        wrapperClass : 'tags-input-wrapper',
+        tagClass : 'tag',
+        max : null,
+        duplicate: false
+    }
+
+    window.TagsInput = TagsInput;
+
+// })();
+
+ var tagInput1 = new TagsInput({
+            selector: 'tag-input1',
+            duplicate : false,
+            max : 10
+        });
+        // tagInput1.addData(['PHP' , 'JavaScript' , 'CSS'])
+    
+    </script>
+
+    <!-- set user id in URL  -->
+    <script>
+          // const getUrl = window.location.href;
+          var urlParams = new URLSearchParams(window.location.search);
+          
+          var userId = urlParams.get('id');
+          // console.log(userId);
+          // let uploadForm = document.getElementById('uploadForm');
+          // uploadForm.action = `http://192.168.0.118:3000/upload?id=${userId}`
+
+          // console.log("User ID:", userId);
+    </script>
+
+    <!-- show free loader  -->
+    <script>
+      let loadBox = document.getElementById('dataLoder')
+      const showLoad = () =>{
+        loadBox.style.display = 'block'
+      }
+    </script>
+
+    <!-- show success modal  -->
+    <script>
+      function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+        const results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+      }
+      console.log("the id from hsl html =", userId);
+      let responseURL = `http://localhost/hls-format_2/convertVideo.html?id=${userId}`;
+      const message = getParameterByName('message');
+      let modal = document.getElementById("myModal");
+      let span = document.getElementsByClassName("close")[0];
+
+      if (message === 'success') {
+        loadBox.style.display = 'none'
+        modal.style.display = "block";
+      }
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+      modal.style.display = "none";
+      window.location.href = responseURL;
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+        window.location.href = responseURL;
+      }
+    }
+    </script>
+
+
+
+
+<script>
+    
+const input = document.getElementById('videoFile');
+const video = document.getElementById('video');
+const DURATION_TARGET_SEC = 4; // Max video duration in seconds
+
+input.addEventListener('change', function() {
+  const file = this.files[0] || [];
+
+  if (!file) return;
+  
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    const blob = base64ToBlob(
+      e.target.result.split(';base64,')[1],
+      {type : file.type}
+    );
+
+    getBlobDuration(blob).then(duration => {
+      console.log('Blob duration:', duration);
+      const chunkLength = duration < DURATION_TARGET_SEC ?
+            blob.size : 
+            Math.floor((blob.size * DURATION_TARGET_SEC) / duration);
+
+      /*
+      * Slice approximate duration from proportional byte length.
+      */
+      const chunk = new Blob([blob.slice(0, chunkLength)], {type : file.type});
+
+      video.src = URL.createObjectURL(chunk);
+      video.load();
+      video.play();
+    });
+  };
+  
+  reader.readAsDataURL(file);
+});
+
+let timer = 0;
+video.addEventListener('playing', function() {
+  if (timer) {
+    console.log(`Deviation from duration target: ${Math.floor((Date.now() - timer) / 1000) - DURATION_TARGET_SEC}s`);
+  }
+
+  timer = Date.now();
+});
+
+video.addEventListener('error', function(err){
+    // This craps out in Safari 6
+  console.error(video.error, err);
+  alert('Media error code:', video.error.code);
+});
+
+function base64ToBlob(base64, options = {}) {
+  try {
+    var byteString = atob(base64);
+    var buffer = new ArrayBuffer(byteString.length);
+    var arr = new Uint8Array(buffer);
+
+    for (var i = 0; i < byteString.length; i++) {
+      arr[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([buffer], options);
+  } catch(e) { console.error(e); }
+}
+
+function getBlobDuration(blob) {
+  const url = URL.createObjectURL(blob); // create o-URL of blob
+
+  return new Promise(resolve => {
+    const videoEl = document.createElement("video"); // create video element
+    videoEl.preload = "metadata"; // preload setting
+    
+    // Fix iOS with long polling
+    const t = setInterval(function() {
+      if (videoEl.readyState > 0 && videoEl.duration) {
+        URL.revokeObjectURL(url); // clean up
+        resolve(videoEl.duration);
+        clearInterval(t);
+      }
+    }, 600);
+    
+    videoEl.addEventListener("loadedmetadata", function() { // when enough data loads
+      URL.revokeObjectURL(url); // clean up
+      clearInterval(t);
+      resolve(Math.floor(videoEl.duration)); // show duration
+    });
+    
+    videoEl.src = url;
+  });
+}
+
+</script>
+
+</body>
+</html>
+
+
+
